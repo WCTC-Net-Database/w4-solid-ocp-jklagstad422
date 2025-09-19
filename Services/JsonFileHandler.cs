@@ -1,23 +1,46 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 using W4_assignment_template.Interfaces;
 using W4_assignment_template.Models;
 
-// NOTE: The Character class uses [JsonProperty] attributes to map C# property names
-// to the lowercase JSON keys required by the assignment. This ensures correct
-// serialization and deserialization when reading from or writing to JSON files.
-
-namespace W4_assignment_template.Services;
-
-public class JsonFileHandler : IFileHandler
+namespace W4_assignment_template.Services
 {
-    public List<Character> ReadCharacters(string filePath)
+    public class JsonFileHandler : IFileHandler
     {
-        // TODO: Implement JSON reading logic
-        throw new NotImplementedException();
-    }
+        public List<Character> ReadCharacters(string filePath)
+        {
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($"JSON file not found: {filePath}");
 
-    public void WriteCharacters(string filePath, List<Character> characters)
-    {
-        // TODO: Implement JSON writing logic
-        throw new NotImplementedException();
+            try
+            {
+                var json = File.ReadAllText(filePath);
+                var characters = JsonConvert.DeserializeObject<List<Character>>(json);
+                return characters ?? new List<Character>();
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidDataException($"Error parsing JSON file {filePath}: {ex.Message}");
+            }
+        }
+
+        public void WriteCharacters(string filePath, List<Character> characters)
+        {
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            try
+            {
+                var json = JsonConvert.SerializeObject(characters, Formatting.Indented);
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                throw new IOException($"Failed to write JSON file {filePath}: {ex.Message}");
+            }
+        }
     }
 }

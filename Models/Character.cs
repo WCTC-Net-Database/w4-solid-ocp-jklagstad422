@@ -15,7 +15,7 @@ public class Character
 
     [JsonProperty("hp")]
     public int HP { get; set; }
-
+    public int Hp { get; internal set; }
     [JsonProperty("equipment")]
     public List<string> Equipment { get; set; }
 }
